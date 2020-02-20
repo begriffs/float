@@ -1,0 +1,7 @@
+# gnore everything
+*
+
+# allow files with extensions
+!*.*
+# but ignore build files
+*.o
