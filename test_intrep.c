@@ -7,6 +7,8 @@
 
 int main(void)
 {
+	assert(smod_lt(1,2));
+
 	assert(smod_cmp(1, 2) == LT);
 	assert(smod_cmp(2, 1) == GT);
 	assert(smod_cmp(2, 2) == EQ);

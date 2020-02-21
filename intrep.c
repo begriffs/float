@@ -23,6 +23,29 @@ int32_t smod_neg(int32_t n)
 	return n ^ (1 << 31);
 }
 
+bool smod_lt(int32_t x, int32_t y)
+{
+	int xneg = (1 << 31) & x,
+		yneg = (1 << 31) & y,
+		xbit, ybit;
+	if (xneg && !yneg)
+		return true;
+	if (!xneg && yneg)
+		return false;
+
+	for (int i = 30; i >= 0; i--)
+	{
+		xbit = (1 << i) & x;
+		ybit = (1 << i) & y;
+
+		if (xbit && !ybit)
+			return false;
+		if (!xbit && ybit)
+			return true;
+	}
+	return false;
+}
+
 enum CMP smod_cmp(int32_t x, int32_t y)
 {
 	int xs = (1 << 31) & x,
@@ -34,9 +57,11 @@ enum CMP smod_cmp(int32_t x, int32_t y)
 	if (xs != ys)
 		return ys ? GT : LT;
 
-	res = (xmag < ymag) ? LT
-		                : (xmag == ymag) ? EQ
-						                 : GT;
+	res = smod_lt(xmag, ymag)
+		  ? LT
+		  : (xmag == ymag)
+		     ? EQ
+			 : GT;
 	return xs ? (-1)*res : res;
 }
 
