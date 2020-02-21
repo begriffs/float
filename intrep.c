@@ -2,13 +2,19 @@
 
 char *tobinary(int n, char *buf)
 {
-	char *ret = buf;
-	while (n > 0)
+	char *ret = buf, bit;
+	if (n == 0 || n == 1)
 	{
 		*buf++ = (n % 2) ? '1' : '0';
-		n /= 2;
+		*buf++ = '\0';
 	}
-	*buf = '\0';
+	else
+	{
+		bit = (n % 2) ? '1' : '0';
+		buf = tobinary(n/2, buf+1);
+		*buf++ = bit;
+	}
+	*buf++ = '\0';
 	return ret;
 }
 
