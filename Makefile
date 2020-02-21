@@ -10,5 +10,6 @@ clean :
 	rm -f *.o
 
 test_intrep : test_intrep.c intrep.o
+	$(CC) $(CFLAGS) test_intrep.c intrep.o -o test_intrep $(LDFLAGS)
 
 intrep.o : intrep.c intrep.h
