@@ -20,15 +20,24 @@ char *tobinary(int n, char *buf)
 
 int32_t smod_neg(int32_t n)
 {
-	(void) n;
-	return 0;
+	return n ^ (1 << 31);
 }
 
-short smod_cmp(int32_t x, int32_t y)
+enum CMP smod_cmp(int32_t x, int32_t y)
 {
-	(void) x;
-	(void) y;
-	return 0;
+	int xs = (1 << 31) & x,
+		ys = (1 << 31) & y;
+	int32_t xmag = (~(1 << 31)) & x,
+	        ymag = (~(1 << 31)) & y;
+	enum CMP res;
+
+	if (xs != ys)
+		return ys ? GT : LT;
+
+	res = (xmag < ymag) ? LT
+		                : (xmag == ymag) ? EQ
+						                 : GT;
+	return xs ? (-1)*res : res;
 }
 
 int32_t smod_add(int32_t x, int32_t y)

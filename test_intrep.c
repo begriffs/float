@@ -7,9 +7,10 @@
 
 int main(void)
 {
-	char buf[100] = {0};
+	assert(smod_cmp(1, 2) == LT);
+	assert(smod_cmp(2, 1) == GT);
+	assert(smod_cmp(2, 2) == EQ);
 
-	for (int i = 0; i < 10; i++)
-		puts(tobinary(i, buf));
+	assert(smod_cmp(0x80000001, 0x80000002) == GT);
 	return EXIT_SUCCESS;
 }
