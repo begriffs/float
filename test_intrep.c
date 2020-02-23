@@ -13,6 +13,6 @@ int main(void)
 	assert(smod_cmp(2, 1) == GT);
 	assert(smod_cmp(2, 2) == EQ);
 
-	assert(smod_cmp(0x80000001, 0x80000002) == GT);
+	assert(smod_cmp(smod_neg(1), smod_neg(2)) == GT);
 	return EXIT_SUCCESS;
 }
