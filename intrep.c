@@ -1,5 +1,7 @@
 #include "intrep.h"
 
+#include <stdbool.h>
+
 char *tobinary(int n, char *buf)
 {
 	char *ret = buf, bit;
@@ -18,12 +20,12 @@ char *tobinary(int n, char *buf)
 	return ret;
 }
 
-int32_t smod_neg(int32_t n)
+uint32_t smod_neg(uint32_t n)
 {
 	return n ^ (1 << 31);
 }
 
-bool smod_lt(int32_t x, int32_t y)
+bool smod_lt(uint32_t x, uint32_t y)
 {
 	int xneg = (1 << 31) & x,
 		yneg = (1 << 31) & y,
@@ -46,11 +48,11 @@ bool smod_lt(int32_t x, int32_t y)
 	return false;
 }
 
-enum CMP smod_cmp(int32_t x, int32_t y)
+enum CMP smod_cmp(uint32_t x, uint32_t y)
 {
 	int xs = (1 << 31) & x,
 		ys = (1 << 31) & y;
-	int32_t xmag = (~(1 << 31)) & x,
+	uint32_t xmag = (~(1 << 31)) & x,
 	        ymag = (~(1 << 31)) & y;
 	enum CMP res;
 
@@ -65,14 +67,89 @@ enum CMP smod_cmp(int32_t x, int32_t y)
 	return xs ? (-1)*res : res;
 }
 
-int32_t smod_add(int32_t x, int32_t y)
+/* both add1_o and sub1_o */
+static bool smod_arith1_o(bool x, bool y, bool c)
 {
-	(void) x;
-	(void) y;
+	return
+		(-x && -y &&  c) ||
+		(-x &&  y && -c) ||
+		( x &&  y &&  c) ||
+		( x && -y && -c);
+}
+static bool smod_add1_c(bool x, bool y, bool c)
+{
+	return (x && y) || (x && !y && c) || (y && c);
+}
+
+static bool smod_sub1_c(bool x, bool y, bool c)
+{
+	return (!x && y) || (!x && !y && c) || (y && c);
+}
+
+#define signo(x) (x & (1 <<31))
+
+uint32_t smod_sub(uint32_t x, uint32_t y)
+{
+	int xneg = signo(x);
+	int yneg = signo(y);
+	bool xb, yb, cb = false;
+	uint32_t result = 0;
+
+	if (!xneg && yneg)
+	{
+		return smod_add(xneg, smod_neg(y));
+	} else if (xneg && !yneg)
+	{
+		return smod_neg(smod_add(smod_neg(x), y));
+	} else if (xneg && yneg)
+	{
+		return smod_sub(smod_neg(y), smod_neg(x));
+	} else /* both positive */
+	{
+		switch (smod_cmp (x, y))
+		{
+		case LT: return smod_neg(smod_sub(y, x));
+		case EQ: return 0;
+		default:
+			 for (int i = 0; i < 31; i++)
+			 {
+				 xb = x & (1 << i);
+				 yb = y & (1 << i);
+				 result |= (smod_arith1_o(xb, yb, cb) << i);
+				 cb = smod_sub1_c(xb, yb, cb);
+			 }
+			 return result;
+		}
+	}
+}
+
+uint32_t smod_add(uint32_t x, uint32_t y)
+{
+	int xneg = (1 << 31) & x,
+		yneg = (1 << 31) & y;
+	bool xb, yb, cb = false;
+	uint32_t result = 0;
+
+	if (xneg == yneg)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			xb = x & (1 << i);
+			yb = y & (1 << i);
+			result |= (smod_arith1_o(xb, yb, cb) << i);
+			cb = smod_add1_c(xb, yb, cb);
+		}
+		return result | xneg;
+	}
+	else if (!xneg && yneg)
+		return smod_sub(x, smod_neg(y));
+	else /* y positive, x negative */
+		return smod_sub(y, smod_neg(x));
+
 	return 0;
 }
 
-int32_t smod_mul(int32_t x, int32_t y)
+uint32_t smod_mul(uint32_t x, uint32_t y)
 {
 	(void) x;
 	(void) y;
