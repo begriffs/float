@@ -22,14 +22,14 @@ char *tobinary(int n, char *buf)
 
 uint32_t smod_neg(uint32_t n)
 {
-	return n ^ (1 << 31);
+	return n ^ (1u << 31);
 }
 
 bool smod_lt(uint32_t x, uint32_t y)
 {
-	int xneg = (1 << 31) & x,
-		yneg = (1 << 31) & y,
-		xbit, ybit;
+	uint32_t xneg = (1u << 31) & x,
+			 yneg = (1u << 31) & y,
+			 xbit, ybit;
 	if (xneg && !yneg)
 		return true;
 	if (!xneg && yneg)
@@ -50,10 +50,10 @@ bool smod_lt(uint32_t x, uint32_t y)
 
 enum CMP smod_cmp(uint32_t x, uint32_t y)
 {
-	int xs = (1 << 31) & x,
-		ys = (1 << 31) & y;
-	uint32_t xmag = (~(1 << 31)) & x,
-	        ymag = (~(1 << 31)) & y;
+	uint32_t xs = (1u << 31) & x,
+			 ys = (1u << 31) & y;
+	uint32_t xmag = (~(1u << 31)) & x,
+			 ymag = (~(1u << 31)) & y;
 	enum CMP res;
 
 	if (xs != ys)
@@ -68,30 +68,30 @@ enum CMP smod_cmp(uint32_t x, uint32_t y)
 }
 
 /* both add1_o and sub1_o */
-static bool smod_arith1_o(bool x, bool y, bool c)
+static unsigned smod_arith1_o(bool x, bool y, bool c)
 {
 	return
-		(-x && -y &&  c) ||
-		(-x &&  y && -c) ||
+		(!x && !y &&  c) ||
+		(!x &&  y && !c) ||
 		( x &&  y &&  c) ||
-		( x && -y && -c);
+		( x && !y && !c);
 }
-static bool smod_add1_c(bool x, bool y, bool c)
+static unsigned smod_add1_c(bool x, bool y, bool c)
 {
 	return (x && y) || (x && !y && c) || (y && c);
 }
 
-static bool smod_sub1_c(bool x, bool y, bool c)
+static unsigned smod_sub1_c(bool x, bool y, bool c)
 {
 	return (!x && y) || (!x && !y && c) || (y && c);
 }
 
-#define signo(x) (x & (1 <<31))
+#define signo(x) (x & (1u << 31))
 
 uint32_t smod_sub(uint32_t x, uint32_t y)
 {
-	int xneg = signo(x);
-	int yneg = signo(y);
+	uint32_t xneg = signo(x),
+			 yneg = signo(y);
 	bool xb, yb, cb = false;
 	uint32_t result = 0;
 
@@ -110,7 +110,7 @@ uint32_t smod_sub(uint32_t x, uint32_t y)
 		{
 		case LT: return smod_neg(smod_sub(y, x));
 		case EQ: return 0;
-		default:
+		case GT:
 			 for (int i = 0; i < 31; i++)
 			 {
 				 xb = x & (1 << i);
@@ -125,8 +125,8 @@ uint32_t smod_sub(uint32_t x, uint32_t y)
 
 uint32_t smod_add(uint32_t x, uint32_t y)
 {
-	int xneg = (1 << 31) & x,
-		yneg = (1 << 31) & y;
+	uint32_t xneg = (1u << 31) & x,
+			 yneg = (1u << 31) & y;
 	bool xb, yb, cb = false;
 	uint32_t result = 0;
 
@@ -145,8 +145,6 @@ uint32_t smod_add(uint32_t x, uint32_t y)
 		return smod_sub(x, smod_neg(y));
 	else /* y positive, x negative */
 		return smod_sub(y, smod_neg(x));
-
-	return 0;
 }
 
 uint32_t smod_mul(uint32_t x, uint32_t y)
