@@ -1,6 +1,6 @@
 .POSIX:
 
-CFLAGS = -std=c99 -g -pedantic -Wall -Wextra
+CFLAGS = -std=c99 -g -pedantic -Wall -Weverything
 
 TESTS = test_intrep
 all : $(TESTS)
