@@ -97,7 +97,7 @@ uint32_t smod_sub(uint32_t x, uint32_t y)
 
 	if (!xneg && yneg)
 	{
-		return smod_add(xneg, smod_neg(y));
+		return smod_add(x, smod_neg(y));
 	} else if (xneg && !yneg)
 	{
 		return smod_neg(smod_add(smod_neg(x), y));
